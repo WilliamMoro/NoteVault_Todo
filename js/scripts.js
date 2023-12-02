@@ -11,6 +11,7 @@ const filterBtn = document.querySelector("#filter-select");
 const openBody = document.querySelector("#open-todo");
 const openTodoContainer = document.querySelector(".todo-container");
 const openBodyBtn = document.querySelector("#open-body-btn");
+const footer = document.querySelector("#footer-todo")
 
 let oldInputValue;
 
@@ -65,6 +66,7 @@ const toggleForms = () => {
 const openBodyMenu = () => {
     openBodyBtn.classList.add("hide");
     openTodoContainer.classList.remove("hide");
+    footer.classList.remove("hide");
 }
 
 const updateTodo = (text) => {
