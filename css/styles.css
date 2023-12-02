@@ -198,3 +198,9 @@ footer p {
     text-align: center;
     color: #999999;
 }
+
+@media(max-width: 450px) {
+    footer p {
+        margin-top: 15rem;
+    }
+}
