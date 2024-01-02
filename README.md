@@ -29,7 +29,7 @@ Esse projeto foi desenvolvido com as seguintes tecnologias:
 
 ## 💻 Projeto
 
-O Note Vault, é uma ferramenta usável já disponível para usuários. A ferramenta tem objetivo de organizar as tarefas do dia a dia e ajudar a organizar a rotina, deixando tudo em um único local, podendo concluir, editar e excluir tarefas (CRUD). Para melhor usabilidade, há possibilidades de pesquisar tarefas, independente de letrar maíusculas ou minusculas e pode filtrar também entre todas tarefas (padrão), Feitos e a fazer!
+O Note Vault, é uma ferramenta usável já disponível para usuários. A ferramenta tem objetivo de organizar as tarefas do dia a dia e ajudar a organizar a rotina, deixando tudo em um único local, podendo concluir, editar e excluir tarefas (CRUD). Para melhor usabilidade, há possibilidades de pesquisar tarefas, independente de letrar maíusculas ou minusculas e pode filtrar também entre todas tarefas (padrão), Feitos e a fazer! Aqui todos os dados ficam salvos dentro do Local Storage para o usuário ter acesso a suas informações!
 
 - [Acesse o projeto finalizado, online](https://github.com/WilliamMoro/Generate_password).
 
