@@ -1,270 +1,229 @@
-// Seleções de elementos
-const todoForm = document.querySelector("#todo-form");
-const todoInput = document.querySelector("#todo-input");
-const todoList = document.querySelector("#todo-list");
-const editForm = document.querySelector("#edit-form");
-const editInput = document.querySelector("#edit-input");
-const cancelEditBtn = document.querySelector("#cancel-edit-btn");
+// Elementos
+const notesContainer = document.querySelector("#notes-container");
+
+const noteInput = document.querySelector("#note-content");
+
+const addNoteBtn = document.querySelector(".add-note");
+
 const searchInput = document.querySelector("#search-input");
-const eraseBtn = document.querySelector("#erase-button");
-const filterBtn = document.querySelector("#filter-select");
-const openBody = document.querySelector("#open-todo");
-const openTodoContainer = document.querySelector(".todo-container");
-const openBodyBtn = document.querySelector("#open-body-btn");
-const footer = document.querySelector("#footer-todo")
 
-let oldInputValue;
-
+const exportBtn = document.querySelector("#export-notes");
 
 // Funções
-const saveTodo = (text, done = 0, save = 1) => {
+function showNotes() {
+  cleanNotes();
 
-    const todo = document.createElement("div");
-    todo.classList.add("todo");
-
-    const todoTitle = document.createElement("h3");
-    todoTitle.innerText = text;
-    todo.appendChild(todoTitle);
-
-    const doneBtn = document.createElement("button");
-    doneBtn.classList.add("finish-todo");
-    doneBtn.innerHTML = '<i class="fa-solid fa-check"></i>';
-    todo.appendChild(doneBtn);
-
-    const editBtn = document.createElement("button");
-    editBtn.classList.add("edit-todo");
-    editBtn.innerHTML = '<i class="fa-solid fa-pen"></i>';
-    todo.appendChild(editBtn);
-
-    const deleteBtn = document.createElement("button");
-    deleteBtn.classList.add("remove-todo");
-    deleteBtn.innerHTML = '<i class="fa-solid fa-xmark"></i>';
-    todo.appendChild(deleteBtn);
-
-    // Utilizando dados da localStorage
-    if(done) {
-        todo.classList.add("done");
-    };
-
-    if(save) {
-        saveTodoLocalStorage({text, done})
-    }
-
-    todoList.appendChild(todo);
-
-    todoInput.value = "";
-    todoInput.focus();
-
-};
-
-const toggleForms = () => {
-    editForm.classList.toggle("hide");
-    todoForm.classList.toggle("hide");
-    todoList.classList.toggle("hide");
-};
-
-const openBodyMenu = () => {
-    openBodyBtn.classList.add("hide");
-    openTodoContainer.classList.remove("hide");
-    footer.classList.remove("hide");
+  getNotes().forEach((note) => {
+    const noteElement = createNote(note.id, note.content, note.fixed);
+    notesContainer.appendChild(noteElement);
+  });
 }
 
-const updateTodo = (text) => {
+function getNotes() {
+  const notes = JSON.parse(localStorage.getItem("notes") || "[]");
 
-    const todos = document.querySelectorAll(".todo");
+  const orderedNotes = notes.sort((a, b) => (a.fixed > b.fixed ? -1 : 1));
 
-    todos.forEach((todo) => {
-        let todoTitle = todo.querySelector("h3");
-
-        if(todoTitle.innerText === oldInputValue) {
-            todoTitle.innerText = text;
-
-            updateTodosLocalStorage(oldInputValue, text);
-        }
-    });
-
+  return orderedNotes;
 }
 
-const getSearchTodos = (search) => {
-    const todos = document.querySelectorAll(".todo");
+function cleanNotes() {
+  notesContainer.replaceChildren([]);
+}
 
-    todos.forEach((todo) => {
-        let todoTitle = todo.querySelector("h3").innerText.toLowerCase();
+function saveNotes(notes) {
+  localStorage.setItem("notes", JSON.stringify(notes));
+}
 
-        const normalizedSearch = search.toLowerCase();
+function createNote(id, content, fixed) {
+  const element = document.createElement("div");
 
-        todo.style.display = "flex";
+  element.classList.add("note");
 
-        if(!todoTitle.includes(normalizedSearch)) {
-            todo.style.display = "none";
-        }
+  const textarea = document.createElement("textarea");
+
+  textarea.value = content;
+
+  textarea.placeholder = "Adicione algum texto...";
+
+  element.appendChild(textarea);
+
+  if (fixed) {
+    element.classList.add("fixed");
+  }
+
+  const pinIcon = document.createElement("i");
+
+  pinIcon.classList.add(...["bi", "bi-pin"]);
+
+  element.appendChild(pinIcon);
+
+  const deleteIcon = document.createElement("i");
+
+  deleteIcon.classList.add(...["bi", "bi-x-lg"]);
+
+  element.appendChild(deleteIcon);
+
+  const duplicateIcon = document.createElement("i");
+
+  duplicateIcon.classList.add(...["bi", "bi-file-earmark-plus"]);
+
+  element.appendChild(duplicateIcon);
+
+  // Eventos do elemento
+  element.querySelector("textarea").addEventListener("keydown", () => {
+    const noteContent = element.querySelector("textarea").value;
+    updateNote(id, noteContent);
+  });
+
+  element.querySelector(".bi-x-lg").addEventListener("click", () => {
+    deleteNote(id, element);
+  });
+
+  element.querySelector(".bi-pin").addEventListener("click", () => {
+    toggleFixNote(id);
+  });
+
+  element
+    .querySelector(".bi-file-earmark-plus")
+    .addEventListener("click", () => {
+      copyNote(id);
     });
-};
 
-const filterTodos = (filterValue) => {
-    const todos = document.querySelectorAll(".todo");
+  return element;
+}
 
-    switch(filterValue) {
-        case "all":
-            todos.forEach((todo) => todo.style.display = "flex");
-            break;
+function addNote() {
+  const notes = getNotes();
 
-        case "done":
-            todos.forEach((todo) => todo.classList.contains("done") 
-            ? (todo.style.display = "flex") 
-            : (todo.style.display = "none")
-            );
-            break;
-        
-        case "todo":
-            todos.forEach((todo) => !todo.classList.contains("done") 
-            ? (todo.style.display = "flex") 
-            : (todo.style.display = "none")
-            );
-            break;
+  const noteInput = document.querySelector("#note-content");
 
-            default:
-            break;
-    };
+  const noteObject = {
+    id: generateId(),
+    content: noteInput.value,
+    fixed: false,
+  };
+
+  const noteElement = createNote(noteObject.id, noteObject.content);
+
+  notesContainer.appendChild(noteElement);
+
+  notes.push(noteObject);
+
+  saveNotes(notes);
+}
+
+function generateId() {
+  return Math.floor(Math.random() * 5000);
+}
+
+function updateNote(id, newContent) {
+  const notes = getNotes();
+  const targetNote = notes.filter((note) => note.id === id)[0];
+
+  targetNote.content = newContent;
+
+  saveNotes(notes);
+}
+
+function deleteNote(id, element) {
+  const notes = getNotes().filter((note) => note.id !== id);
+
+  saveNotes(notes);
+
+  notesContainer.removeChild(element);
+}
+
+function toggleFixNote(id) {
+  const notes = getNotes();
+  const targetNote = notes.filter((note) => note.id === id)[0];
+
+  targetNote.fixed = !targetNote.fixed;
+
+  saveNotes(notes);
+
+  showNotes();
+}
+
+function searchNotes(search) {
+  const searchResults = getNotes().filter((note) =>
+    note.content.includes(search)
+  );
+
+  if (search !== "") {
+    cleanNotes();
+
+    searchResults.forEach((note) => {
+      const noteElement = createNote(note.id, note.content);
+      notesContainer.appendChild(noteElement);
+    });
+
+    return;
+  }
+
+  cleanNotes();
+
+  showNotes();
+}
+
+function copyNote(id) {
+  const notes = getNotes();
+  const targetNote = notes.filter((note) => note.id === id)[0];
+
+  const noteObject = {
+    id: generateId(),
+    content: targetNote.content,
+    fixed: false,
+  };
+
+  const noteElement = createNote(noteObject.id, noteObject.content, false);
+
+  notesContainer.appendChild(noteElement);
+
+  notes.push(noteObject);
+
+  saveNotes(notes);
+}
+
+function exportData() {
+  const notes = JSON.parse(localStorage.getItem("notes") || "[]");
+
+  const csvString = [
+    ["ID", "Conteúdo", "Fixado?"],
+    ...notes.map((note) => [note.id, note.content, note.fixed]),
+  ]
+    .map((e) => e.join(","))
+    .join("\n");
+
+  const element = document.createElement("a");
+
+  element.href = "data:text/csv;charset=utf-8," + encodeURI(csvString);
+
+  element.target = "_blank";
+
+  element.download = "export.csv";
+
+  element.click();
 }
 
 // Eventos
-
-todoForm.addEventListener("submit", (e) => {
-
-    e.preventDefault();
-
-    const inputValue = todoInput.value;
-
-    if(inputValue) {
-        saveTodo(inputValue);
-    }
-
-});
-
-openBody.addEventListener("click", (e) => {
-    setTimeout(() => {
-        openBodyMenu();
-    }, 600)
-});
-
-setTimeout(() => {
-    alert("A ferramenta que te ajuda a performar!");
-},20000)
-
-document.addEventListener("click", (e) => {
-
-    const targetEl = e.target;
-    const parentEl = targetEl.closest("div");
-    let todoTitle;
-
-    if(parentEl && parentEl.querySelector("h3")) {
-        todoTitle = parentEl.querySelector("h3").innerText;
-    }
-
-    if(targetEl.classList.contains("finish-todo")) {
-        parentEl.classList.toggle("done");
-
-        updateTodosStatusLocalStorage(todoTitle);
-    }
-
-    if(targetEl.classList.contains("remove-todo")) {
-        parentEl.remove();
-
-        removeTodoLocalStorage(todoTitle);
-    }
-
-    if(targetEl.classList.contains("edit-todo")) {
-        toggleForms();
-
-        editInput.value = todoTitle;
-        oldInputValue = todoTitle;
-    }
-});
-
-cancelEditBtn.addEventListener("click", (e) => {
-    e.preventDefault();
-
-    toggleForms();
-});
-
-editForm.addEventListener("submit", (e) => {
-    e.preventDefault();
-
-    const editInputValue = editInput.value;
-
-    if(editInputValue) {
-        updateTodo(editInputValue);
-    }
-
-    toggleForms();
-});
+addNoteBtn.addEventListener("click", () => addNote());
 
 searchInput.addEventListener("keyup", (e) => {
-    const search = e.target.value;
+  const search = e.target.value;
 
-    getSearchTodos(search);
+  searchNotes(search);
 });
 
-eraseBtn.addEventListener("click", (e) => {
-    e.preventDefault();
-
-    searchInput.value = "";
-
-    searchInput.dispatchEvent(new Event("keyup"));
+noteInput.addEventListener("keydown", (e) => {
+  if (e.key === "Enter") {
+    addNote();
+  }
 });
 
-filterBtn.addEventListener("change", (e) => {
-    const filterValue = e.target.value;
-
-    filterTodos(filterValue);
+exportBtn.addEventListener("click", () => {
+  exportData();
 });
 
-// Local Storage
-const getTodosLocalStorage = () => {
-    const todos = JSON.parse(localStorage.getItem("todos")) || [];
-
-    return todos;
-}
-
-const loadtodos = () => {
-    const todos = getTodosLocalStorage();
-
-    todos.forEach((todo) => {
-        saveTodo(todo.text, todo.done, 0);
-    });
-};
-
-const saveTodoLocalStorage = (todo) => {
-    const todos = getTodosLocalStorage()
-
-    todos.push(todo)
-
-    localStorage.setItem("todos", JSON.stringify(todos));
-};
-
-const removeTodoLocalStorage = (todoText) => {
-    const todos = getTodosLocalStorage();
-
-    const filteredTodos = todos.filter((todo) => todo.text !== todoText);
-
-    localStorage.setItem("todos", JSON.stringify(filteredTodos));
-};
-
-const updateTodosStatusLocalStorage = (todoText) => {
-    const todos = getTodosLocalStorage();
-
-    todos.map((todo) => todo.text === todoText ? (todo.done = !todo.done) : null);
-
-    localStorage.setItem("todos", JSON.stringify(todos));
-}
-
-const updateTodosLocalStorage = (todoOldText, todoNewText) => {
-    const todos = getTodosLocalStorage();
-
-    todos.map((todo) => todo.text === todoOldText ? (todo.text = !todoNewText) : null);
-
-    localStorage.setItem("todos", JSON.stringify(todos));
-}
-
-loadtodos();
+// Init
+showNotes();
