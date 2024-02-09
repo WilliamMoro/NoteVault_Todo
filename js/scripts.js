@@ -57,9 +57,9 @@ const toggleForms = () => {
   todoList.classList.toggle("hide");
 };
 
-// const OpenTodo = () => {
-//   openTodoList.classList("hide");
-// }
+const openTodo = () => {
+  openTodoList.classList.toggle("hide");
+}
 
 const updateTodo = (text) => {
   const todos = document.querySelectorAll(".todo");
@@ -201,12 +201,11 @@ filterBtn.addEventListener("change", (e) => {
 
   filterTodos(filterValue);
 });
+btnOpenTodo.addEventListener("click", (e) => {
+   e.preventDefault();
 
-// btnOpenTodo.addEventListener("click", (e) => {
-//   e.preventDefault();
-
-//   openTodo();
-// })
+   openTodo();
+})
 
 // Local Storage
 const getTodosLocalStorage = () => {
